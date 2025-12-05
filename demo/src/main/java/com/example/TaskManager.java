@@ -22,15 +22,22 @@ public class TaskManager {
     public ObservableList<Task> getTasks() { return tasks; }
 
     public void fetchAll() throws IOException, InterruptedException {
-        HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL))
-                .GET().build();
-        HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-        if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-            ArrayList<Task> list = tasksFromJson(resp.body());
-            tasks.setAll(list);
-        } else {
-            throw new IOException("Fetch failed: " + resp.statusCode());
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL))
+                    .GET().build();
+            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
+                ArrayList<Task> list = tasksFromJson(resp.body());
+                tasks.setAll(list);
+            } else {
+                throw new IOException("Fetch failed: HTTP " + resp.statusCode() + " - " + resp.body());
+            }
+        } catch (java.net.ConnectException e) {
+            throw new IOException("Cannot connect to server at " + BASE_URL + ". Make sure TaskServer is running on port 8000.", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Request interrupted", e);
         }
     }
 

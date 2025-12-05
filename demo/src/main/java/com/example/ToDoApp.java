@@ -157,9 +157,26 @@ public class ToDoApp extends Application {
     private void refreshFromServer() {
         try {
             taskManager.fetchAll();
+            // Clear selection after refresh
+            listView.getSelectionModel().clearSelection();
+            clearForm();
+            // Optional: Show success message (uncomment if desired)
+            // showInfo("Tasks refreshed successfully");
         } catch (Exception ex) {
-            showError("Failed to fetch tasks: " + ex.getMessage());
+            String errorMsg = ex.getMessage();
+            if (errorMsg == null || errorMsg.isEmpty()) {
+                errorMsg = ex.getClass().getSimpleName() + " - Check if server is running on port 8000";
+            }
+            showError("Failed to fetch tasks: " + errorMsg);
+            ex.printStackTrace(); // Print stack trace for debugging
         }
+    }
+    
+    private void showInfo(String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setHeaderText(null);
+        a.setContentText(msg);
+        a.show();
     }
 
     private void handleAdd() {
